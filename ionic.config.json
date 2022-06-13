@@ -1,0 +1,7 @@
+{
+  "name": "typingSoup",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "vue"
+}

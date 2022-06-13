@@ -1,0 +1,6 @@
+{
+	"appId": "io.ionic.starter",
+	"appName": "typingSoup",
+	"webDir": "dist",
+	"bundledWebRuntime": false
+}
