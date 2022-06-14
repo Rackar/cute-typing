@@ -1,17 +1,17 @@
 <template>
   <ion-page>
-    <ion-header :translucent="true">
+    <!-- <ion-header :translucent="true">
       <ion-toolbar>
         <ion-title>Typing Soup</ion-title>
       </ion-toolbar>
-    </ion-header>
+    </ion-header> -->
 
     <ion-content :fullscreen="true">
-      <ion-header collapse="condense">
+      <!-- <ion-header collapse="condense">
         <ion-toolbar>
           <ion-title size="large">Blank</ion-title>
         </ion-toolbar>
-      </ion-header>
+      </ion-header> -->
 
       <div id="container">
         <div class="word-panel m10" v-if="wordMiddle">
@@ -23,18 +23,17 @@
           点击开始按钮
         </div>
 
-        <!-- <button @click="startGetWord">start Get Word</button> -->
-        <div>
+
+        <div class="m10">
           <span @click="startGetWord" class="m10 primary-btn">开始</span>
         </div>
-        <!-- <input :value="info.input" class="input" @input="onInputChange"
-          placeholder="Tap on the virtual keyboard to start"> -->
+
 
         <SimpleKeyboard @onChange="onChange" @onKeyPress="onKeyPress" @keyboardMounted="keyboardMounted"
           :input="info.input" />
-        <div>
+        <div class="m10">
           <span class="" v-for="finger in info.fingerGroup" :key="finger.name">
-            <span @click="changeFinger(finger)" class="change-finger">{{finger.label}}</span>
+            <span @click="changeFinger(finger)" class="m10 primary-btn">{{ finger.label }}</span>
 
           </span>
         </div>
@@ -64,19 +63,19 @@ interface Ifinger {
   keys: string[]
 }
 
-let wordsList: Iwordlist[] = reactive([])
-let info = reactive({
+const wordsList: Iwordlist[] = reactive([])
+const info = reactive({
   input: "",
   aimKeys: ['q', 'a', 'z', 'e', 'i', 'o'],
-  next:{
-    word:'',
-    key:''
+  next: {
+    word: '',
+    key: ''
   },
   fingerGroup: [
     {
-      label:"左手小指",
-      name:'left1',
-      keys: ['z','q', 'a']
+      label: "左手小指",
+      name: 'left1',
+      keys: ['z', 'q', 'a']
     },
     {
       label: "左手无名指",
@@ -92,13 +91,13 @@ let info = reactive({
     {
       label: "左手食指",
       name: 'left4',
-      keys: ['v', 'f','b','g','t', 'r']
+      keys: ['v', 'f', 'b', 'g', 't', 'r']
     }
     ,
     {
       label: "右手食指",
       name: 'right2',
-      keys: ['m', 'n', 'y','j','h','u']
+      keys: ['m', 'n', 'y', 'j', 'h', 'u']
     }
     ,
     {
@@ -116,26 +115,30 @@ let info = reactive({
     {
       label: "右手小指",
       name: 'right5',
-      keys: ['[', ']', '/', ';','\'', 'p']
+      keys: ['[', ']', '/', ';', '\'', 'p']
     }
   ],
 })
-function getNextWord(): Iwordlist {
-  let word = randomWords(1)[0]
-  let res = checkWordsHasAimkey(word, info.aimKeys)
+function getNextWord(index?: number): Iwordlist {
+  const word = randomWords(1)[0]
+  if (index === undefined) {
+    index = Math.floor(Math.random() * info.aimKeys.length)
+  }
+
+  const res = checkWordsHasAimkey(word, info.aimKeys[index])
   if (res) {
     return res
   } else {
-    return getNextWord()
+    return getNextWord(index)
   }
 }
 
 
-let wordStart = computed(() => {
-  let el = info.next
+const wordStart = computed(() => {
+  const el = info.next
   if (el) {
-    let word = el.word
-    let key = el.key
+    const { word } = el
+    const { key } = el
 
     return word.split(key)[0]
   } else {
@@ -144,8 +147,8 @@ let wordStart = computed(() => {
 })
 
 
-let wordMiddle = computed(() => {
-  let el = info.next
+const wordMiddle = computed(() => {
+  const el = info.next
   if (el) {
     return el.key
   } else {
@@ -153,11 +156,11 @@ let wordMiddle = computed(() => {
   }
 })
 
-let wordEnd = computed(() => {
-  let el = info.next
+const wordEnd = computed(() => {
+  const el = info.next
   if (el) {
-    let word = el.word
-    let key = el.key
+    const { word } = el
+    const { key } = el
 
     return word.split(key)[1]
   } else {
@@ -166,7 +169,7 @@ let wordEnd = computed(() => {
 })
 
 function changeFinger(finger: Ifinger) {
-  addShadow(finger.keys,info.aimKeys)
+  addShadow(finger.keys, info.aimKeys)
   info.aimKeys = finger.keys
 }
 
@@ -175,26 +178,16 @@ function startGetWord() {
   keyboard.addButtonTheme(info.next.key, "next-button");
 
   addShadow(info.aimKeys)
-  // setInterval(() => {
-  //   let arr = randomWords(5)
 
-  //   for (const word of arr) {
-  //     let res = checkWordsHasAimkey(word, info.aimKeys)
-  //     if (res) {
-  //       wordsList.push(res)
-  //     }
-  //   }
-  // }, 1000);
 }
-function checkWordsHasAimkey(word: string, aimkey: string[]): Iwordlist | null {
-  {
-    for (const keychar of aimkey) {
-      if (word.indexOf(keychar) !== -1) {
-        return { word, key: keychar }
-      }
-    }
-    return null
+
+function checkWordsHasAimkey(word: string, aimkey: string): Iwordlist | null {
+
+  if (word.indexOf(aimkey) !== -1) {
+    return { word, key: aimkey }
   }
+
+  return null
 }
 
 let keyboard: any = null
@@ -203,13 +196,13 @@ function keyboardMounted(_keyboard: any) {
 
 }
 
-function addShadow(keys:string[],lastKeys:string[]=[]){
+function addShadow(keys: string[], lastKeys: string[] = []) {
 
   for (const thekey of lastKeys) {
     keyboard.removeButtonTheme(thekey, "shadow-button");
   }
 
-  for(const thekey of keys){
+  for (const thekey of keys) {
     keyboard.addButtonTheme(thekey, "shadow-button");
   }
 }
@@ -218,13 +211,14 @@ function onChange(_input: string) {
   console.log("Input changed", _input);
   info.input = _input;
 }
+
 function onKeyPress(button: string) {
   console.log("button", button);
   if (info.next && info.next.key === button) {
-  keyboard.removeButtonTheme(button, "next-button");
-  info.next = getNextWord();
-  keyboard.addButtonTheme(info.next.key, "next-button");
-  }else{
+    keyboard.removeButtonTheme(button, "next-button");
+    info.next = getNextWord();
+    keyboard.addButtonTheme(info.next.key, "next-button");
+  } else {
     console.log('错误')
   }
   // let cur = wordsList[0]
@@ -239,10 +233,12 @@ function onKeyPress(button: string) {
 
   // }
 }
+
 function onInputChange(_input: any) {
   console.log("Input changed", _input);
   info.input = _input.target.value;
 }
+
 export default defineComponent({
   name: 'HomePage',
   components: {
@@ -300,24 +296,28 @@ export default defineComponent({
 }
 </style>
 <style>
-.pointer{
+.pointer {
   cursor: pointer;
 }
-.m10{
-  margin:10px;
+
+.m10 {
+  margin: 10px;
 }
-.primary-btn{
+
+.primary-btn {
   cursor: pointer;
   background-color: #00a699;
   color: #fff;
   border-radius: 5px;
   padding: 5px 10px;
-  
+
 }
-.primary-btn:hover{
+
+.primary-btn:hover {
   background-color: #008378;
   color: #fff;
 }
+
 input {
   width: 100%;
   height: 100px;
@@ -335,18 +335,20 @@ input {
   border: 2px solid #ff0000;
 }
 
-.word-panel{
+.word-panel {
   font-size: 30px;
 }
-.wordMiddle{
-  color:red;
+
+.wordMiddle {
+  color: red;
 }
-.hg-theme-default .hg-button.shadow-button{
+
+.hg-theme-default .hg-button.shadow-button {
   box-shadow: 2px 3px 2px 1px gray;
 }
 
-.change-finger{
-  margin:0 6px;
+.change-finger {
+  margin: 0 6px;
   padding: 2px 4px;
   cursor: pointer;
   border: 1px solid #cccccc;

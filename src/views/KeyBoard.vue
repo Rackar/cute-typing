@@ -29,7 +29,7 @@ import "simple-keyboard/build/css/index.css";
       onKeyPress: this.onKeyPress
     });
     this.$emit('keyboardMounted', this.keyboard);
-    document.onkeydown = (e) => {
+    document.onkeydown = e => {
       console.log('原生', e.key)
       this.$emit("onKeyPress", e.key);
 
@@ -45,11 +45,11 @@ import "simple-keyboard/build/css/index.css";
       /**
        * If you want to handle the shift and caps lock buttons
        */
-      if (button === "{shift}" || button === "{lock}") this.handleShift();
+      if (button === "{shift}" || button === "{lock}") {this.handleShift();}
     },
     handleShift() {
-      let currentLayout = this.keyboard.options.layoutName;
-      let shiftToggle = currentLayout === "default" ? "shift" : "default";
+      const currentLayout = this.keyboard.options.layoutName;
+      const shiftToggle = currentLayout === "default" ? "shift" : "default";
 
       this.keyboard.setOptions({
         layoutName: shiftToggle
