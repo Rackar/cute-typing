@@ -14,13 +14,20 @@
       </ion-header> -->
 
       <div id="container">
+        <div>
+          <span class="bullet" v-show="info.showBuuletAnima">{{info.cur_btn}}</span>
+        </div>
         <div class="word-panel m10" v-if="wordMiddle">
           <span class="wordStart"> {{ wordStart }}</span>
           <span class="wordMiddle"> {{ wordMiddle }}</span>
           <span class="wordEnd"> {{ wordEnd }}</span>
         </div>
+
         <div class="word-panel m10" v-else>
           点击开始按钮
+        </div>
+        <div>
+          正确计数 {{info.rightCount}}, 错误计数 {{info.wrongCount}}
         </div>
 
 
@@ -38,7 +45,7 @@
           </span>
         </div>
         <div>
-          <img src="../pics/hands.svg" alt="" srcset="" width="500">
+          <!-- <img src="../pics/hands.svg" alt="" srcset="" width="500"> -->
         </div>
       </div>
 
@@ -49,8 +56,9 @@
 <script lang="ts">
 import SimpleKeyboard from "./KeyBoard.vue";
 import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar } from '@ionic/vue';
-import { defineComponent, reactive, computed } from 'vue';
+import { defineComponent, reactive, computed ,nextTick} from 'vue';
 // var randomWords = require('random-words');
+import anime from 'animejs'
 import { randomWords } from '../libs/randomWord';
 interface Iwordlist {
   word: string;
@@ -118,6 +126,10 @@ const info = reactive({
       keys: ['[', ']', '/', ';', '\'', 'p']
     }
   ],
+  rightCount:0,
+  wrongCount:0,
+  showBuuletAnima:false,
+  cur_btn:'o'
 })
 function getNextWord(index?: number): Iwordlist {
   const word = randomWords(1)[0]
@@ -212,27 +224,83 @@ function onChange(_input: string) {
   info.input = _input;
 }
 
-function onKeyPress(button: string) {
+async function onKeyPress(button: string) {
   console.log("button", button);
+  if (button&&button.length!==1){
+    return
+  }
+
+
   if (info.next && info.next.key === button) {
+    info.rightCount++
+    info.cur_btn=button
+    await startAnima()
     keyboard.removeButtonTheme(button, "next-button");
     info.next = getNextWord();
     keyboard.addButtonTheme(info.next.key, "next-button");
+    
+     
   } else {
+    info.wrongCount++
     console.log('错误')
   }
-  // let cur = wordsList[0]
-  // if (cur && cur.key === button) {
-  //   keyboard.removeButtonTheme(button, "next-button");
-  //   wordsList.shift()
-  //   let next = wordsList[0]
-  //   if (next){
-  //     keyboard.addButtonTheme(next.key, "next-button");
-  //   }
-
-
-  // }
 }
+
+function startAnima() {
+  return new Promise((resolve,reject)=>{
+    const btn = document.querySelector(`.next-button`) as HTMLElement
+    const aim = document.querySelector(`.word-panel .wordMiddle`) as HTMLElement
+    const bullet = document.querySelector(`.bullet`) as HTMLElement
+    
+    if(!(btn&&aim&&bullet)){
+      reject()
+      return
+    }
+
+    // 拼凑了一下得到键盘按键位置
+    bullet.style.left = `${btn.offsetLeft+15}px`
+    bullet.style.top = `${btn.offsetTop+10}px`
+    info.showBuuletAnima = true
+    const offsetX = aim.offsetLeft - btn.offsetLeft-15 
+    const offsetY = aim.offsetTop - btn.offsetTop
+    console.log(`from buulet ${btn.offsetLeft},${btn.offsetTop} move x:${offsetX} y:${offsetY}`)
+
+    nextTick(()=>{
+      anime({
+            targets: bullet,
+            translateX: offsetX,
+            translateY: offsetY,
+            easing: 'linear',
+            duration:200,
+            complete(){
+              info.showBuuletAnima = false
+              bullet.style.left = `${btn.offsetLeft}px`
+              bullet.style.top = `${btn.offsetTop}px`
+              bullet.style.transform=`translateX(0px) translateY(0px)`
+              resolve(null)
+            }
+          })
+    })
+
+  })
+}
+
+function getElementPos(element:HTMLElement) {
+  let actualLeft = element.offsetLeft;
+  let actualTop = element.offsetTop;
+
+  let current = element.offsetParent as HTMLElement;
+  while (current !== null) {
+    actualLeft += current.offsetLeft;
+    actualTop += current.offsetTop;
+
+    current = current.offsetParent as HTMLElement;
+  }
+
+  return { actualLeft, actualTop };
+}
+
+
 
 function onInputChange(_input: any) {
   console.log("Input changed", _input);
@@ -352,5 +420,18 @@ input {
   padding: 2px 4px;
   cursor: pointer;
   border: 1px solid #cccccc;
+}
+.bullet{
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 20px;
+  height: 20px;
+  background-color: #ff0000;
+  opacity: 0.5;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 </style>

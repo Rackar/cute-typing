@@ -25,6 +25,7 @@ import "simple-keyboard/build/css/index.css";
       physicalKeyboardHighlight: true,//实体键盘敲击高亮
       // physicalKeyboardHighlightPress: true,
       layoutName: "default", //修改布局
+      disableButtonHold:true,//禁止长按
       onChange: this.onChange,
       onKeyPress: this.onKeyPress
     });
