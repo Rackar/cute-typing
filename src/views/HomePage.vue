@@ -15,7 +15,7 @@
 
       <div id="container">
         <div>
-          <span class="bullet" v-show="info.showBuuletAnima">{{info.cur_btn}}</span>
+          <span class="bullet" v-show="info.showBuuletAnima">{{ info.cur_btn }}</span>
         </div>
         <div class="word-panel m10" v-if="wordMiddle">
           <span class="wordStart"> {{ wordStart }}</span>
@@ -27,12 +27,13 @@
           点击开始按钮
         </div>
         <div>
-          正确计数 {{info.rightCount}}, 错误计数 {{info.wrongCount}}
+          正确计数 {{ info.rightCount }}, 错误计数 {{ info.wrongCount }}, 计时 {{ info.time }}
         </div>
 
 
         <div class="m10">
           <span @click="startGetWord" class="m10 primary-btn">开始</span>
+          <span @click="stopGame" class="m10 primary-btn">停止</span>
         </div>
 
 
@@ -45,7 +46,7 @@
           </span>
         </div>
         <div>
-          <!-- <img src="../pics/hands.svg" alt="" srcset="" width="500"> -->
+          <img id="fingerPic" src="../pics/hands.svg" alt="" srcset="" width="500">
         </div>
       </div>
 
@@ -56,7 +57,7 @@
 <script lang="ts">
 import SimpleKeyboard from "./KeyBoard.vue";
 import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar } from '@ionic/vue';
-import { defineComponent, reactive, computed ,nextTick} from 'vue';
+import { defineComponent, reactive, computed, nextTick } from 'vue';
 // var randomWords = require('random-words');
 import anime from 'animejs'
 import { randomWords } from '../libs/randomWord';
@@ -126,10 +127,12 @@ const info = reactive({
       keys: ['[', ']', '/', ';', '\'', 'p']
     }
   ],
-  rightCount:0,
-  wrongCount:0,
-  showBuuletAnima:false,
-  cur_btn:'o'
+  rightCount: 0,
+  wrongCount: 0,
+  showBuuletAnima: false,
+  cur_btn: 'o',
+  time: 0,
+  cacheShadowedList: ['']
 })
 function getNextWord(index?: number): Iwordlist {
   const word = randomWords(1)[0]
@@ -180,17 +183,72 @@ const wordEnd = computed(() => {
   }
 })
 
+let intervalHandle = 0
+function startTime() {
+  info.time = 0
+  intervalHandle = setInterval(() => {
+    info.time = info.time + 0.1
+    info.time = Math.round(info.time * 10) / 10
+  }, 100)
+}
+
+function clearTime() {
+  clearInterval(intervalHandle)
+}
+
+function removeAll() {
+  keyboard.recurseButtons((buttonElement: string) => {
+    console.log('buttonElement', buttonElement);
+  });
+}
+
 function changeFinger(finger: Ifinger) {
+  getFingerPicPos()
+
   addShadow(finger.keys, info.aimKeys)
   info.aimKeys = finger.keys
+  clearLastWordHighlight()
+  stopGame()
+}
+
+function getFingerPicPos() {
+  const el = document.getElementById('fingerPic')
+  if (el) {
+    const { left, top, bottom, right } = el.getBoundingClientRect()
+
+    console.log(left, top, bottom, right)
+    return {
+      left,
+      top
+    }
+  } else { return null }
+
+}
+
+function clearLastWordHighlight() {
+  if (info.next) {
+    keyboard.removeButtonTheme(info.next.key, "next-button");
+  }
 }
 
 function startGetWord() {
+  removeAll()
+  clearTime()
+  startTime()
+  info.rightCount = 0
+  info.wrongCount = 0
+
+
+  clearLastWordHighlight()
   info.next = getNextWord();
   keyboard.addButtonTheme(info.next.key, "next-button");
 
   addShadow(info.aimKeys)
 
+}
+
+function stopGame() {
+  clearTime()
 }
 
 function checkWordsHasAimkey(word: string, aimkey: string): Iwordlist | null {
@@ -214,8 +272,20 @@ function addShadow(keys: string[], lastKeys: string[] = []) {
     keyboard.removeButtonTheme(thekey, "shadow-button");
   }
 
+  clearShadow()
   for (const thekey of keys) {
     keyboard.addButtonTheme(thekey, "shadow-button");
+    info.cacheShadowedList = [...thekey]
+  }
+}
+
+function clearShadow() {
+  if (!info.cacheShadowedList || info.cacheShadowedList.length === 0 || (info.cacheShadowedList.length === 0 && info.cacheShadowedList[0] === "")) {
+    return
+  }
+
+  for (const thekey of info.cacheShadowedList) {
+    keyboard.removeButtonTheme(thekey, "shadow-button");
   }
 }
 
@@ -226,20 +296,20 @@ function onChange(_input: string) {
 
 async function onKeyPress(button: string) {
   console.log("button", button);
-  if (button&&button.length!==1){
+  if (button && button.length !== 1) {
     return
   }
 
 
   if (info.next && info.next.key === button) {
     info.rightCount++
-    info.cur_btn=button
+    info.cur_btn = button
     await startAnima()
     keyboard.removeButtonTheme(button, "next-button");
     info.next = getNextWord();
     keyboard.addButtonTheme(info.next.key, "next-button");
-    
-     
+
+
   } else {
     info.wrongCount++
     console.log('错误')
@@ -247,45 +317,45 @@ async function onKeyPress(button: string) {
 }
 
 function startAnima() {
-  return new Promise((resolve,reject)=>{
+  return new Promise((resolve, reject) => {
     const btn = document.querySelector(`.next-button`) as HTMLElement
     const aim = document.querySelector(`.word-panel .wordMiddle`) as HTMLElement
     const bullet = document.querySelector(`.bullet`) as HTMLElement
-    
-    if(!(btn&&aim&&bullet)){
+
+    if (!(btn && aim && bullet)) {
       reject()
       return
     }
 
     // 拼凑了一下得到键盘按键位置
-    bullet.style.left = `${btn.offsetLeft+15}px`
-    bullet.style.top = `${btn.offsetTop+10}px`
+    bullet.style.left = `${btn.offsetLeft + 15}px`
+    bullet.style.top = `${btn.offsetTop + 10}px`
     info.showBuuletAnima = true
-    const offsetX = aim.offsetLeft - btn.offsetLeft-15 
+    const offsetX = aim.offsetLeft - btn.offsetLeft - 15
     const offsetY = aim.offsetTop - btn.offsetTop
     console.log(`from buulet ${btn.offsetLeft},${btn.offsetTop} move x:${offsetX} y:${offsetY}`)
 
-    nextTick(()=>{
+    nextTick(() => {
       anime({
-            targets: bullet,
-            translateX: offsetX,
-            translateY: offsetY,
-            easing: 'linear',
-            duration:200,
-            complete(){
-              info.showBuuletAnima = false
-              bullet.style.left = `${btn.offsetLeft}px`
-              bullet.style.top = `${btn.offsetTop}px`
-              bullet.style.transform=`translateX(0px) translateY(0px)`
-              resolve(null)
-            }
-          })
+        targets: bullet,
+        translateX: offsetX,
+        translateY: offsetY,
+        easing: 'linear',
+        duration: 200,
+        complete() {
+          info.showBuuletAnima = false
+          bullet.style.left = `${btn.offsetLeft}px`
+          bullet.style.top = `${btn.offsetTop}px`
+          bullet.style.transform = `translateX(0px) translateY(0px)`
+          resolve(null)
+        }
+      })
     })
 
   })
 }
 
-function getElementPos(element:HTMLElement) {
+function getElementPos(element: HTMLElement) {
   let actualLeft = element.offsetLeft;
   let actualTop = element.offsetTop;
 
@@ -321,10 +391,11 @@ export default defineComponent({
     return {
       wordsList,
       startGetWord,
+      stopGame,
       info, onChange, onKeyPress, onInputChange,
       wordStart, wordMiddle, wordEnd,
       keyboardMounted,
-      changeFinger
+      changeFinger,
     }
   }
 });
@@ -421,7 +492,8 @@ input {
   cursor: pointer;
   border: 1px solid #cccccc;
 }
-.bullet{
+
+.bullet {
   position: absolute;
   top: 0;
   left: 0;
