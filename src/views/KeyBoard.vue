@@ -11,14 +11,14 @@ import "simple-keyboard/build/css/index.css";
   props: {
     keyboardClass: {
       default: "simple-keyboard",
-      type: String
+      type: String,
     },
     input: {
-      type: String
-    }
+      type: String,
+    },
   },
   data: () => ({
-    keyboard: null
+    keyboard: null,
   }),
   mounted() {
     this.keyboard = new Keyboard(this.keyboardClass, {
@@ -27,7 +27,7 @@ import "simple-keyboard/build/css/index.css";
       layoutName: "default", //修改布局
       disableButtonHold:true,//禁止长按
       onChange: this.onChange,
-      onKeyPress: this.onKeyPress
+      onKeyPress: this.onKeyPress,
     });
     this.$emit('keyboardMounted', this.keyboard);
     document.onkeydown = e => {
@@ -53,15 +53,15 @@ import "simple-keyboard/build/css/index.css";
       const shiftToggle = currentLayout === "default" ? "shift" : "default";
 
       this.keyboard.setOptions({
-        layoutName: shiftToggle
+        layoutName: shiftToggle,
       });
-    }
+    },
   },
   watch: {
     input(input) {
       this.keyboard.setInput(input);
-    }
-  }
+    },
+  },
 };
 </script>
 

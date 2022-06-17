@@ -1,4 +1,4 @@
-const wordList = [
+export const wordList = [
   // Borrowed from xkcd password generator which borrowed it from wherever
   "ability","able","aboard","about","above","accept","accident","according",
   "account","accurate","acres","across","act","action","active","activity",
@@ -243,7 +243,8 @@ const wordList = [
   "work","worker","world","worried","worry","worse","worth","would",
   "wrapped","write","writer","writing","written","wrong","wrote","yard",
   "year","yellow","yes","yesterday","yet","you","young","younger",
-  "your","yourself","youth","zero","zebra","zipper","zoo","zulu"
+  "your","yourself","youth","zero","zebra","zipper","zoo","zulu",
+  'a/b','a[b','a]b','a\\b','a;b','a\'b','a,b','a.b',
 ];
 interface wordOptions {
   maxLength?: number;
@@ -277,6 +278,7 @@ export function randomWords(options:wordOptions|number):string[] {
       }
 
     }
+
     return wordUsed;
   }
 
@@ -318,6 +320,7 @@ export function randomWords(options:wordOptions|number):string[] {
   if (typeof(options.separator) !== 'string') {
     options.separator = ' ';
   }
+
   let results = [];
   if(options.max&&options.min){
     const total = options.min + randInt(options.max + 1 - options.min);
@@ -332,6 +335,7 @@ export function randomWords(options:wordOptions|number):string[] {
       else {
         token += options.formatter(word(), relativeIndex) + options.separator;
       }
+
       relativeIndex++;
       if ((i + 1) % options.wordsPerString === 0) {
         results.push(token);

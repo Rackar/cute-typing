@@ -18,7 +18,7 @@
         <div>
           <span class="bullet" v-show="info.showBuuletAnima">{{ info.cur_btn }}</span>
         </div>
-        <img id="monster" src="../pics/s1.jpg" alt="" srcset="" width="50" />
+        <img id="monster" :src="'/pics/monster/' + info.monsterPicName +'.jpg' " alt="" srcset="" width="50" />
         <div class="word-panel m10" v-if="wordMiddle">
           <span class="wordStart"> {{ wordStart }}</span>
           <span class="wordMiddle"> {{ wordMiddle }}</span>
@@ -61,7 +61,9 @@ import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar } from '@ionic/vue
 import { defineComponent, reactive, computed, nextTick } from 'vue';
 // var randomWords = require('random-words');
 import anime from 'animejs'
-import { randomWords } from '../libs/randomWord';
+import { randomWords, wordList } from '../libs/randomWord';
+
+//#region 定义变量
 interface Iwordlist {
   word: string;
   key: string;
@@ -73,60 +75,63 @@ interface Ifinger {
   keys: string[]
 }
 
+const monsterNames = Array(4).fill(0).map((_, i) => `${i}`);
+
+
 const wordsList: Iwordlist[] = reactive([])
 const info = reactive({
   input: "",
-  aimKeys: ['q', 'a', 'z', 'e', 'i', 'o'],
+  aimKeys: [ 'a', 'u', 'e', 'i', 'o'],
   next: {
     word: '',
-    key: ''
+    key: '',
   },
   fingerGroup: [
     {
       label: "左手小指",
       name: 'left1',
-      keys: ['z', 'q', 'a']
+      keys: ['z', 'q', 'a'],
     },
     {
       label: "左手无名指",
       name: 'left2',
-      keys: ['x', 'w', 's']
+      keys: ['x', 'w', 's'],
     },
     {
       label: "左手中指",
       name: 'left3',
-      keys: ['c', 'd', 'e']
+      keys: ['c', 'd', 'e'],
     }
     ,
     {
       label: "左手食指",
       name: 'left4',
-      keys: ['v', 'f', 'b', 'g', 't', 'r']
+      keys: ['v', 'f', 'b', 'g', 't', 'r'],
     }
     ,
     {
       label: "右手食指",
       name: 'right2',
-      keys: ['m', 'n', 'y', 'j', 'h', 'u']
+      keys: ['m', 'n', 'y', 'j', 'h', 'u'],
     }
     ,
     {
       label: "右手中指",
       name: 'right3',
-      keys: [',', 'k', 'i']
+      keys: [',', 'k', 'i'],
     }
     ,
     {
       label: "右手无名指",
       name: 'right4',
-      keys: ['.', 'l', 'o']
+      keys: ['.', 'l', 'o'],
     }
     ,
     {
       label: "右手小指",
       name: 'right5',
-      keys: ['[', ']', '/', ';', '\'', 'p']
-    }
+      keys: ['[', ']', '/', ';', `'`, 'p','\\'],
+    },
   ],
   rightCount: 0,
   wrongCount: 0,
@@ -134,23 +139,9 @@ const info = reactive({
   cur_btn: 'o',
   time: 0,
   cacheShadowedList: [''],
-  isShowFingerPoint:false
+  isShowFingerPoint:false,
+  monsterPicName:'0',
 })
-function getNextWord(index?: number): Iwordlist {
-  const word = randomWords(1)[0]
-  if (index === undefined) {
-    index = Math.floor(Math.random() * info.aimKeys.length)
-  }
-
-  const res = checkWordsHasAimkey(word, info.aimKeys[index])
-  if (res) {
-    return res
-  } else {
-    return getNextWord(index)
-  }
-}
-
-
 const wordStart = computed(() => {
   const el = info.next
   if (el) {
@@ -185,7 +176,42 @@ const wordEnd = computed(() => {
   }
 })
 
+//#endregion
+
+
+function generateRandomWordFrom(letter:string) {
+  const filteredList = wordList.filter(item => item.indexOf(letter)!==-1 )
+  if(filteredList.length===0){
+    return ''
+  }
+
+  return filteredList[randInt(filteredList.length)];
+}
+
+function randInt(lessThan: number) {
+  return Math.floor(Math.random() * lessThan);
+}
+
+function getNextWord(index?: number): Iwordlist {
+  // const word = randomWords(1)[0]
+  if (index === undefined || index>= info.aimKeys.length) {
+    index = Math.floor(Math.random() * info.aimKeys.length)
+  }
+
+  const word =  generateRandomWordFrom(info.aimKeys[index])
+  const res = checkWordsHasAimkey(word, info.aimKeys[index])
+  if (res) {
+    return res
+  } else {
+    return getNextWord(index)
+  }
+}
+
+
+
+
 let intervalHandle = 0
+
 function startTime(startTime = 0) {
   info.time = startTime
   intervalHandle = setInterval(() => {
@@ -198,11 +224,7 @@ function clearTime() {
   clearInterval(intervalHandle)
 }
 
-function removeAll() {
-  keyboard.recurseButtons((buttonElement: string) => {
-    console.log('buttonElement', buttonElement);
-  });
-}
+//#region 手指图片控制
 
 function changeFinger(finger: Ifinger) {
   info.isShowFingerPoint=true
@@ -275,19 +297,19 @@ function getFingerPicPos(name: string) {
   }
 }
 
+//#endregion
+
 function clearLastWordHighlight() {
   if (info.next) {
     keyboard.removeButtonTheme(info.next.key, "next-button");
   }
 }
 
-function startGetWord() {
-  removeAll()
-  clearTime()
-  startTime()
-  info.rightCount = 0
-  info.wrongCount = 0
+//#region 主界面按键控制
 
+function startGetWord() {
+  // clearTime()
+  startTime(info.time)
 
   clearLastWordHighlight()
   info.next = getNextWord();
@@ -295,16 +317,100 @@ function startGetWord() {
 
   addShadow(info.aimKeys)
 
+  addMonsterMove()
+
 }
 
 function stopGame() {
   clearTime()
+  info.rightCount = 0
+  info.wrongCount = 0
+  info.time = 0
+  removeMonsterMove()
 }
 
 function pauseGame() {
   clearTime()
+  removeMonsterMove()
+}
+//#endregion
+
+
+//#region 怪兽行为动画控制
+function addMonsterMove()
+{
+  const randomIndex = Math.floor(Math.random() * monsterNames.length)
+  info.monsterPicName = monsterNames[randomIndex]
+  const monster = document.querySelector(`#monster`) as HTMLElement
+  anime({
+    targets: monster,
+    // scale: [
+    //   { value: 1.1, duration: 250, delay: 200, easing: 'easeOutExpo' },
+    //   { value: 1, duration: 450 },
+    //   { value: 1.05, duration: 350, delay: 200, easing: 'easeOutExpo' },
+    //   { value: 1, duration: 450 }
+    // ],
+    rotateZ:[
+      {
+        value: -10,
+        duration: 300,
+        easing: 'easeOutExpo',
+      },
+      {
+        value: 0,
+        duration: 400,
+        easing: 'easeOutExpo',
+      },
+      {
+        value: 10,
+        duration: 300,
+        easing: 'easeOutExpo',
+      },
+      {
+        value: 0,
+        duration: 400,
+        easing: 'easeOutExpo',
+      },
+    ],
+    easing: 'easeOutElastic(1, .8)',
+    loop: true,
+  })
 }
 
+function removeMonsterMove(){
+  const monster = document.querySelector(`#monster`) as HTMLElement
+  anime.remove(monster)
+}
+
+function monsterBeHited() {
+  return new Promise((resovle,reject)=>{
+    removeMonsterMove()
+    const monster = document.querySelector(`#monster`) as HTMLElement
+    anime({
+      targets: monster,
+      scale: [
+        { value: 1.2, duration: 150  },
+        { value: 2.5, duration: 350, delay: 100 },
+        { value: 1, duration: 0 },
+      ],
+      opacity: [
+        { value: 0.9, duration: 150  },
+        { value: 0, duration: 350, delay: 100 },
+        { value: 1, duration: 0 },
+      ],
+      
+      complete: ()=>{
+        resovle(null)
+      },
+    })
+
+  })
+}
+
+//#endregion
+
+
+//#region  utils pure
 function checkWordsHasAimkey(word: string, aimkey: string): Iwordlist | null {
 
   if (word.indexOf(aimkey) !== -1) {
@@ -314,10 +420,11 @@ function checkWordsHasAimkey(word: string, aimkey: string): Iwordlist | null {
   return null
 }
 
+//#endregion
+
 let keyboard: any = null
 function keyboardMounted(_keyboard: any) {
   keyboard = _keyboard
-
 }
 
 function addShadow(keys: string[], lastKeys: string[] = []) {
@@ -343,32 +450,7 @@ function clearShadow() {
   }
 }
 
-function onChange(_input: string) {
-  console.log("Input changed", _input);
-  info.input = _input;
-}
 
-async function onKeyPress(button: string) {
-  console.log("button", button);
-  if (button && button.length !== 1) {
-    return
-  }
-
-
-  if (info.next && info.next.key === button) {
-    info.rightCount++
-    info.cur_btn = button
-    await startAnima()
-    keyboard.removeButtonTheme(button, "next-button");
-    info.next = getNextWord();
-    keyboard.addButtonTheme(info.next.key, "next-button");
-
-
-  } else {
-    info.wrongCount++
-    console.log('错误')
-  }
-}
 
 function startAnima() {
   return new Promise((resolve, reject) => {
@@ -402,7 +484,7 @@ function startAnima() {
           bullet.style.top = `${btn.offsetTop}px`
           bullet.style.transform = `translateX(0px) translateY(0px)`
           resolve(null)
-        }
+        },
       })
     })
 
@@ -423,13 +505,41 @@ function getElementPos(element: HTMLElement) {
 
   return { actualLeft, actualTop };
 }
+//#region 键盘事件
+
+function onChange(_input: string) {
+  console.log("Input changed", _input);
+  info.input = _input;
+}
+
+async function onKeyPress(button: string) {
+  console.log("button", button);
+  if (button && button.length !== 1) {
+    return
+  }
 
 
+  if (info.next && info.next.key === button) {
+    info.rightCount++
+    info.cur_btn = button
+    await startAnima()
+    await monsterBeHited()
+    keyboard.removeButtonTheme(button, "next-button");
+    info.next = getNextWord();
+    keyboard.addButtonTheme(info.next.key, "next-button");
+    addMonsterMove()
+
+  } else {
+    info.wrongCount++
+    console.log('错误')
+  }
+}
 
 function onInputChange(_input: any) {
   console.log("Input changed", _input);
   info.input = _input.target.value;
 }
+//#endregion
 
 export default defineComponent({
   name: 'HomePage',
@@ -452,7 +562,7 @@ export default defineComponent({
       keyboardMounted,
       changeFinger,
     }
-  }
+  },
 });
 </script>
 

@@ -1,21 +1,23 @@
 module.exports = {
   root: true,
   env: {
-    node: true
+    node: true,
   },
   'extends': [
     'plugin:vue/vue3-essential',
     'eslint:recommended',
-    '@vue/typescript/recommended'
+    '@vue/typescript/recommended',
   ],
   parserOptions: {
-    ecmaVersion: 2020
+    ecmaVersion: 2020,
   },
   rules: {
     'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
     'no-debugger': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
     'vue/no-deprecated-slot-attribute': 'off',
     '@typescript-eslint/no-explicit-any': 'off',
+     // 多行逗号
+    'comma-dangle': ['warn', 'always-multiline'],
     //if后必须加花括号
     curly: 1,
     //禁止条件表达式中出现赋值操作符
@@ -57,11 +59,11 @@ module.exports = {
     'prefer-destructuring': [
       'warn',
       {
-        object: true
+        object: true,
       },
       {
-        enforceForRenamedProperties: false
-      }
+        enforceForRenamedProperties: false,
+      },
     ],
 
     //禁止在循环中声明函数
@@ -70,18 +72,18 @@ module.exports = {
     //禁止循环中出现await。应使用await Promise.all(results)将promise集合并行处理
     'no-await-in-loop': 'warn',
 
-    'vue/no-unused-components':1
+    'vue/no-unused-components':1,
     
   },
   overrides: [
     {
       files: [
         '**/__tests__/*.{j,t}s?(x)',
-        '**/tests/unit/**/*.spec.{j,t}s?(x)'
+        '**/tests/unit/**/*.spec.{j,t}s?(x)',
       ],
       env: {
-        jest: true
-      }
-    }
-  ]
+        jest: true,
+      },
+    },
+  ],
 }
