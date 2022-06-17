@@ -12,11 +12,13 @@
           <ion-title size="large">Blank</ion-title>
         </ion-toolbar>
       </ion-header> -->
+      <span class="fingerHighlight" v-show="info.isShowFingerPoint"> </span>
 
       <div id="container">
         <div>
           <span class="bullet" v-show="info.showBuuletAnima">{{ info.cur_btn }}</span>
         </div>
+        <img id="monster" src="../pics/s1.jpg" alt="" srcset="" width="50" />
         <div class="word-panel m10" v-if="wordMiddle">
           <span class="wordStart"> {{ wordStart }}</span>
           <span class="wordMiddle"> {{ wordMiddle }}</span>
@@ -30,15 +32,14 @@
           正确计数 {{ info.rightCount }}, 错误计数 {{ info.wrongCount }}, 计时 {{ info.time }}
         </div>
 
+        <SimpleKeyboard @onChange="onChange" @onKeyPress="onKeyPress" @keyboardMounted="keyboardMounted"
+          :input="info.input" />
 
         <div class="m10">
           <span @click="startGetWord" class="m10 primary-btn">开始</span>
-          <span @click="stopGame" class="m10 primary-btn">停止</span>
+          <span @click="pauseGame" class="m10 primary-btn">暂停</span>
+          <span @click="stopGame" class="m10 primary-btn">清零</span>
         </div>
-
-
-        <SimpleKeyboard @onChange="onChange" @onKeyPress="onKeyPress" @keyboardMounted="keyboardMounted"
-          :input="info.input" />
         <div class="m10">
           <span class="" v-for="finger in info.fingerGroup" :key="finger.name">
             <span @click="changeFinger(finger)" class="m10 primary-btn">{{ finger.label }}</span>
@@ -132,7 +133,8 @@ const info = reactive({
   showBuuletAnima: false,
   cur_btn: 'o',
   time: 0,
-  cacheShadowedList: ['']
+  cacheShadowedList: [''],
+  isShowFingerPoint:false
 })
 function getNextWord(index?: number): Iwordlist {
   const word = randomWords(1)[0]
@@ -184,8 +186,8 @@ const wordEnd = computed(() => {
 })
 
 let intervalHandle = 0
-function startTime() {
-  info.time = 0
+function startTime(startTime = 0) {
+  info.time = startTime
   intervalHandle = setInterval(() => {
     info.time = info.time + 0.1
     info.time = Math.round(info.time * 10) / 10
@@ -203,7 +205,8 @@ function removeAll() {
 }
 
 function changeFinger(finger: Ifinger) {
-  getFingerPicPos()
+  info.isShowFingerPoint=true
+  getFingerPicPos(finger.name)
 
   addShadow(finger.keys, info.aimKeys)
   info.aimKeys = finger.keys
@@ -211,18 +214,65 @@ function changeFinger(finger: Ifinger) {
   stopGame()
 }
 
-function getFingerPicPos() {
+function getFingerPicPos(name: string) {
   const el = document.getElementById('fingerPic')
   if (el) {
-    const { left, top, bottom, right } = el.getBoundingClientRect()
-
-    console.log(left, top, bottom, right)
-    return {
-      left,
-      top
+    const { top, bottom, left, right } = el.getBoundingClientRect()
+    const btn = document.querySelector(`#fingerPic`) as HTMLElement
+    console.log('offset', btn.offsetTop, btn.offsetLeft);
+    console.log(getElementPos(btn))
+    const { actualLeft, actualTop } = getElementPos(btn)
+    console.log(top, bottom, left, right)
+    const height = bottom - top +54  //不知道什么原因缺了25像素，补上。。
+    let offsetX = 0
+    let offsetY = 0
+    const xlen = (right - left) / 1000
+    const ylen = (bottom - top) / 1000
+    //按1000为标准单位设定偏移常数
+    switch (name) {
+      case 'left1':
+        offsetX = 15
+        offsetY = 360
+        break;
+      case 'left2':
+        offsetX = 93
+        offsetY = 50
+        break;
+      case 'left3':
+        offsetX = 140
+        offsetY = -84
+        break;
+      case 'left4':
+        offsetX = 257
+        offsetY = -81
+        break;
+      case 'right2':
+        offsetX = 702
+        offsetY = -90
+        break;
+      case 'right3':
+        offsetX = 818
+        offsetY = -84
+        break;
+      case 'right4':
+        offsetX = 865
+        offsetY = 35
+        break;
+      case 'right5':
+        offsetX = 941
+        offsetY = 365
+        break;
+      default:
+        break;
     }
-  } else { return null }
 
+    const fingerHighlight = document.querySelector(`.fingerHighlight`) as HTMLElement
+    if (fingerHighlight) {
+      // 拼凑了一下得到键盘按键位置
+      fingerHighlight.style.left = `${actualLeft + Math.round(offsetX * xlen)}px`
+      fingerHighlight.style.top = `${actualTop - height + Math.round(offsetY * ylen)}px`
+    }
+  }
 }
 
 function clearLastWordHighlight() {
@@ -248,6 +298,10 @@ function startGetWord() {
 }
 
 function stopGame() {
+  clearTime()
+}
+
+function pauseGame() {
   clearTime()
 }
 
@@ -392,6 +446,7 @@ export default defineComponent({
       wordsList,
       startGetWord,
       stopGame,
+      pauseGame,
       info, onChange, onKeyPress, onInputChange,
       wordStart, wordMiddle, wordEnd,
       keyboardMounted,
@@ -505,5 +560,20 @@ input {
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+.fingerHighlight {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 20px;
+  height: 20px;
+  background-color: #ff0000;
+  opacity: 0.5;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid rgb(104, 255, 197)
 }
 </style>
