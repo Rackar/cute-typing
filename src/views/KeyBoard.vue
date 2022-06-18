@@ -6,8 +6,10 @@
 import Keyboard from "simple-keyboard";
 import "simple-keyboard/build/css/index.css";
 
-  export default {
-    name: "SimpleKeyboard",
+let pressing = false //防止物理按键持续按下
+
+export default {
+  name: "SimpleKeyboard",
   props: {
     keyboardClass: {
       default: "simple-keyboard",
@@ -25,15 +27,22 @@ import "simple-keyboard/build/css/index.css";
       physicalKeyboardHighlight: true,//实体键盘敲击高亮
       // physicalKeyboardHighlightPress: true,
       layoutName: "default", //修改布局
-      disableButtonHold:true,//禁止长按
+      disableButtonHold: true,//禁止长按
       onChange: this.onChange,
       onKeyPress: this.onKeyPress,
     });
     this.$emit('keyboardMounted', this.keyboard);
-    document.onkeydown = e => {
-      console.log('原生', e.key)
-      this.$emit("onKeyPress", e.key);
 
+    // 监听物理键盘按键事件
+    document.onkeydown = e => {
+      if (pressing === false) {
+        this.$emit("onKeyPress", e.key);
+        pressing = true
+      }
+    }
+
+    document.onkeyup = () => {
+      pressing = false
     }
   },
   methods: {
@@ -46,7 +55,7 @@ import "simple-keyboard/build/css/index.css";
       /**
        * If you want to handle the shift and caps lock buttons
        */
-      if (button === "{shift}" || button === "{lock}") {this.handleShift();}
+      if (button === "{shift}" || button === "{lock}") { this.handleShift(); }
     },
     handleShift() {
       const currentLayout = this.keyboard.options.layoutName;

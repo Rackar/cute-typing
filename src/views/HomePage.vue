@@ -18,7 +18,7 @@
         <div>
           <span class="bullet" v-show="info.showBuuletAnima">{{ info.cur_btn }}</span>
         </div>
-        <img id="monster" :src="'/pics/monster/' + info.monsterPicName +'.jpg' " alt="" srcset="" width="50" />
+        <img id="monster" :src="'/pics/monster/' + info.monsterPicName + '.jpg'" alt="" srcset="" width="50" />
         <div class="word-panel m10" v-if="wordMiddle">
           <span class="wordStart"> {{ wordStart }}</span>
           <span class="wordMiddle"> {{ wordMiddle }}</span>
@@ -29,7 +29,7 @@
           点击开始按钮
         </div>
         <div>
-          正确计数 {{ info.rightCount }}, 错误计数 {{ info.wrongCount }}, 计时 {{ info.time }}
+          正确计数 {{ info.rightCount }}, 错误计数 {{ info.wrongCount }}, 计时 {{ Math.floor(info.time) }}
         </div>
 
         <SimpleKeyboard @onChange="onChange" @onKeyPress="onKeyPress" @keyboardMounted="keyboardMounted"
@@ -63,7 +63,7 @@ import { defineComponent, reactive, computed, nextTick } from 'vue';
 import anime from 'animejs'
 import { randomWords, wordList } from '../libs/randomWord';
 
-//#region 定义变量
+//#region 定义类型、变量、计算属性、响应式
 interface Iwordlist {
   word: string;
   key: string;
@@ -81,7 +81,7 @@ const monsterNames = Array(4).fill(0).map((_, i) => `${i}`);
 const wordsList: Iwordlist[] = reactive([])
 const info = reactive({
   input: "",
-  aimKeys: [ 'a', 'u', 'e', 'i', 'o'],
+  aimKeys: ['a', 'u', 'e', 'i', 'o'],
   next: {
     word: '',
     key: '',
@@ -130,7 +130,7 @@ const info = reactive({
     {
       label: "右手小指",
       name: 'right5',
-      keys: ['[', ']', '/', ';', `'`, 'p','\\'],
+      keys: ['[', ']', '/', ';', `'`, 'p', '\\'],
     },
   ],
   rightCount: 0,
@@ -139,8 +139,8 @@ const info = reactive({
   cur_btn: 'o',
   time: 0,
   cacheShadowedList: [''],
-  isShowFingerPoint:false,
-  monsterPicName:'0',
+  isShowFingerPoint: false,
+  monsterPicName: '0',
 })
 const wordStart = computed(() => {
   const el = info.next
@@ -179,26 +179,14 @@ const wordEnd = computed(() => {
 //#endregion
 
 
-function generateRandomWordFrom(letter:string) {
-  const filteredList = wordList.filter(item => item.indexOf(letter)!==-1 )
-  if(filteredList.length===0){
-    return ''
-  }
-
-  return filteredList[randInt(filteredList.length)];
-}
-
-function randInt(lessThan: number) {
-  return Math.floor(Math.random() * lessThan);
-}
 
 function getNextWord(index?: number): Iwordlist {
   // const word = randomWords(1)[0]
-  if (index === undefined || index>= info.aimKeys.length) {
+  if (index === undefined || index >= info.aimKeys.length) {
     index = Math.floor(Math.random() * info.aimKeys.length)
   }
 
-  const word =  generateRandomWordFrom(info.aimKeys[index])
+  const word = generateRandomWordFrom(wordList, info.aimKeys[index])
   const res = checkWordsHasAimkey(word, info.aimKeys[index])
   if (res) {
     return res
@@ -206,8 +194,6 @@ function getNextWord(index?: number): Iwordlist {
     return getNextWord(index)
   }
 }
-
-
 
 
 let intervalHandle = 0
@@ -227,7 +213,7 @@ function clearTime() {
 //#region 手指图片控制
 
 function changeFinger(finger: Ifinger) {
-  info.isShowFingerPoint=true
+  info.isShowFingerPoint = true
   getFingerPicPos(finger.name)
 
   addShadow(finger.keys, info.aimKeys)
@@ -245,7 +231,7 @@ function getFingerPicPos(name: string) {
     console.log(getElementPos(btn))
     const { actualLeft, actualTop } = getElementPos(btn)
     console.log(top, bottom, left, right)
-    const height = bottom - top +54  //不知道什么原因缺了25像素，补上。。
+    const height = bottom - top + 54  //不知道什么原因缺了25像素，补上。。
     let offsetX = 0
     let offsetY = 0
     const xlen = (right - left) / 1000
@@ -337,8 +323,7 @@ function pauseGame() {
 
 
 //#region 怪兽行为动画控制
-function addMonsterMove()
-{
+function addMonsterMove() {
   const randomIndex = Math.floor(Math.random() * monsterNames.length)
   info.monsterPicName = monsterNames[randomIndex]
   const monster = document.querySelector(`#monster`) as HTMLElement
@@ -350,7 +335,7 @@ function addMonsterMove()
     //   { value: 1.05, duration: 350, delay: 200, easing: 'easeOutExpo' },
     //   { value: 1, duration: 450 }
     // ],
-    rotateZ:[
+    rotateZ: [
       {
         value: -10,
         duration: 300,
@@ -377,29 +362,29 @@ function addMonsterMove()
   })
 }
 
-function removeMonsterMove(){
+function removeMonsterMove() {
   const monster = document.querySelector(`#monster`) as HTMLElement
   anime.remove(monster)
 }
 
 function monsterBeHited() {
-  return new Promise((resovle,reject)=>{
+  return new Promise((resovle, reject) => {
     removeMonsterMove()
     const monster = document.querySelector(`#monster`) as HTMLElement
     anime({
       targets: monster,
       scale: [
-        { value: 1.2, duration: 150  },
+        { value: 1.2, duration: 150 },
         { value: 2.5, duration: 350, delay: 100 },
         { value: 1, duration: 0 },
       ],
       opacity: [
-        { value: 0.9, duration: 150  },
+        { value: 0.9, duration: 150 },
         { value: 0, duration: 350, delay: 100 },
         { value: 1, duration: 0 },
       ],
-      
-      complete: ()=>{
+
+      complete: () => {
         resovle(null)
       },
     })
@@ -410,7 +395,7 @@ function monsterBeHited() {
 //#endregion
 
 
-//#region  utils pure
+//#region  utils pure function
 function checkWordsHasAimkey(word: string, aimkey: string): Iwordlist | null {
 
   if (word.indexOf(aimkey) !== -1) {
@@ -418,6 +403,34 @@ function checkWordsHasAimkey(word: string, aimkey: string): Iwordlist | null {
   }
 
   return null
+}
+
+function generateRandomWordFrom(_wordList: string[], letter: string) {
+  const filteredList = _wordList.filter(item => item.indexOf(letter) !== -1)
+  if (filteredList.length === 0) {
+    return ''
+  }
+
+  return filteredList[randInt(filteredList.length)];
+}
+
+function randInt(lessThan: number) {
+  return Math.floor(Math.random() * lessThan);
+}
+
+function getElementPos(element: HTMLElement) {
+  let actualLeft = element.offsetLeft;
+  let actualTop = element.offsetTop;
+
+  let current = element.offsetParent as HTMLElement;
+  while (current !== null) {
+    actualLeft += current.offsetLeft;
+    actualTop += current.offsetTop;
+
+    current = current.offsetParent as HTMLElement;
+  }
+
+  return { actualLeft, actualTop };
 }
 
 //#endregion
@@ -449,8 +462,6 @@ function clearShadow() {
     keyboard.removeButtonTheme(thekey, "shadow-button");
   }
 }
-
-
 
 function startAnima() {
   return new Promise((resolve, reject) => {
@@ -491,35 +502,30 @@ function startAnima() {
   })
 }
 
-function getElementPos(element: HTMLElement) {
-  let actualLeft = element.offsetLeft;
-  let actualTop = element.offsetTop;
 
-  let current = element.offsetParent as HTMLElement;
-  while (current !== null) {
-    actualLeft += current.offsetLeft;
-    actualTop += current.offsetTop;
-
-    current = current.offsetParent as HTMLElement;
-  }
-
-  return { actualLeft, actualTop };
-}
-//#region 键盘事件
+//#region 键盘按键和输入事件
 
 function onChange(_input: string) {
   console.log("Input changed", _input);
   info.input = _input;
 }
 
+let keepPressing = false
 async function onKeyPress(button: string) {
+  if (keepPressing) {
+    return
+  }
+
   console.log("button", button);
   if (button && button.length !== 1) {
     return
   }
 
 
+
+
   if (info.next && info.next.key === button) {
+    keepPressing = true
     info.rightCount++
     info.cur_btn = button
     await startAnima()
@@ -527,11 +533,13 @@ async function onKeyPress(button: string) {
     keyboard.removeButtonTheme(button, "next-button");
     info.next = getNextWord();
     keyboard.addButtonTheme(info.next.key, "next-button");
+    keepPressing = false
     addMonsterMove()
 
   } else {
     info.wrongCount++
     console.log('错误')
+    keepPressing = false
   }
 }
 
