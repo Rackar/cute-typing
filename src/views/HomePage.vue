@@ -6,7 +6,7 @@
       </ion-toolbar>
     </ion-header> -->
 
-    <ion-content :fullscreen="true">
+    <ion-content :fullscreen="false">
       <!-- <ion-header collapse="condense">
         <ion-toolbar>
           <ion-title size="large">Blank</ion-title>
@@ -39,8 +39,10 @@
           <span @click="startGetWord" class="m10 primary-btn">开始</span>
           <span @click="pauseGame" class="m10 primary-btn">暂停</span>
           <span @click="stopGame" class="m10 primary-btn">清零</span>
+          <span @click="showHandsOnKeyboard" class="m10 primary-btn">显示双手位置</span>
         </div>
         <div class="m10">
+          <span @click="changeModeToAllFingers" class="m10 primary-btn">全键盘</span>
           <span class="" v-for="finger in info.fingerGroup" :key="finger.name">
             <span @click="changeFinger(finger)" class="m10 primary-btn">{{ finger.label }}</span>
 
@@ -61,7 +63,7 @@ import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar } from '@ionic/vue
 import { defineComponent, reactive, computed, nextTick } from 'vue';
 // var randomWords = require('random-words');
 import anime from 'animejs'
-import { randomWords, wordList } from '../libs/randomWord';
+import {  wordList } from '../libs/randomWord';
 
 //#region 定义类型、变量、计算属性、响应式
 interface Iwordlist {
@@ -77,8 +79,9 @@ interface Ifinger {
 
 const monsterNames = Array(4).fill(0).map((_, i) => `${i}`);
 
-
 const wordsList: Iwordlist[] = reactive([])
+const ALL_KEYS = ['z', 'q', 'a', 'x', 'w', 's', 'c', 'd', 'e', 'v', 'f', 'b', 'g', 't', 'r','m', 'n', 'y', 'j', 'h', 'u', ',', 'k', 'i', '.', 'l', 'o', '[', ']', '/', ';', `'`, 'p', '\\']
+
 const info = reactive({
   input: "",
   aimKeys: ['a', 'u', 'e', 'i', 'o'],
@@ -222,6 +225,13 @@ function changeFinger(finger: Ifinger) {
   stopGame()
 }
 
+function changeModeToAllFingers(){
+  addShadow([], info.aimKeys)
+  info.aimKeys = ALL_KEYS
+  clearLastWordHighlight()
+  stopGame()
+}
+
 function getFingerPicPos(name: string) {
   const el = document.getElementById('fingerPic')
   if (el) {
@@ -301,7 +311,7 @@ function startGetWord() {
   info.next = getNextWord();
   keyboard.addButtonTheme(info.next.key, "next-button");
 
-  addShadow(info.aimKeys)
+  // addShadow(info.aimKeys)
 
   addMonsterMove()
 
@@ -503,6 +513,34 @@ function startAnima() {
 }
 
 
+function showHandsOnKeyboard(){
+  const el = document.getElementById('fingerPic')
+  const btns = document.querySelectorAll<HTMLElement>('.hg-button.hg-standardBtn')
+  // const btn_F=btns.find(btn=>btn.innerText==='F')
+  if (el) {
+    for (const btn of btns) {
+      if (btn.dataset.skbtn ==='f'){
+
+        console.log(btn.offsetTop,el.offsetTop)
+        const h = btn.offsetTop - el.offsetTop - 20
+        keyboard.addButtonTheme('f j', "position-base-button");
+        anime({
+          targets: el,
+          translateY: h,
+          easing: 'linear',
+          direction: 'alternate',
+          duration: 500,
+          loop: 2,
+          complete() {
+            // el.style.display = 'none'
+          },
+        })
+        break
+      }
+    }
+  }
+}
+
 //#region 键盘按键和输入事件
 
 function onChange(_input: string) {
@@ -520,9 +558,6 @@ async function onKeyPress(button: string) {
   if (button && button.length !== 1) {
     return
   }
-
-
-
 
   if (info.next && info.next.key === button) {
     keepPressing = true
@@ -569,6 +604,8 @@ export default defineComponent({
       wordStart, wordMiddle, wordEnd,
       keyboardMounted,
       changeFinger,
+      changeModeToAllFingers,
+      showHandsOnKeyboard,
     }
   },
 });
@@ -694,4 +731,19 @@ input {
   align-items: center;
   border: 1px solid rgb(104, 255, 197)
 }
+.position-base-button{
+  position: relative;
+
+}
+.position-base-button ::before{
+  content: '';
+  position:absolute;
+  height: 2px;
+  bottom: 2px;
+  left:40%;
+  width: 14px;
+  border-bottom: 3px solid rgb(14, 106, 126);
+  display: inline-block;
+  /* margin-right: 24px; */
+  }
 </style>
