@@ -40,6 +40,7 @@
           <span @click="pauseGame" class="m10 primary-btn">暂停</span>
           <span @click="stopGame" class="m10 primary-btn">清零</span>
           <span @click="showHandsOnKeyboard" class="m10 primary-btn">显示双手位置</span>
+          <span @click="muteTheSounds" class="m10 primary-btn">静音/解除</span>
         </div>
         <div class="m10">
           <span @click="changeModeToAllFingers" class="m10 primary-btn">全键盘</span>
@@ -63,7 +64,8 @@ import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar } from '@ionic/vue
 import { defineComponent, reactive, computed, nextTick } from 'vue';
 // var randomWords = require('random-words');
 import anime from 'animejs'
-import {  wordList } from '../libs/randomWord';
+import { wordList } from '../libs/randomWord';
+import { playListByNames, muteTheSounds, playSingleByName } from './sound'
 
 //#region 定义类型、变量、计算属性、响应式
 interface Iwordlist {
@@ -80,7 +82,7 @@ interface Ifinger {
 const monsterNames = Array(4).fill(0).map((_, i) => `${i}`);
 
 const wordsList: Iwordlist[] = reactive([])
-const ALL_KEYS = ['z', 'q', 'a', 'x', 'w', 's', 'c', 'd', 'e', 'v', 'f', 'b', 'g', 't', 'r','m', 'n', 'y', 'j', 'h', 'u', ',', 'k', 'i', '.', 'l', 'o', '[', ']', '/', ';', `'`, 'p', '\\']
+const ALL_KEYS = ['z', 'q', 'a', 'x', 'w', 's', 'c', 'd', 'e', 'v', 'f', 'b', 'g', 't', 'r', 'm', 'n', 'y', 'j', 'h', 'u', ',', 'k', 'i', '.', 'l', 'o', '[', ']', '/', ';', `'`, 'p', '\\']
 
 const info = reactive({
   input: "",
@@ -225,7 +227,7 @@ function changeFinger(finger: Ifinger) {
   stopGame()
 }
 
-function changeModeToAllFingers(){
+function changeModeToAllFingers() {
   addShadow([], info.aimKeys)
   info.aimKeys = ALL_KEYS
   clearLastWordHighlight()
@@ -475,6 +477,7 @@ function clearShadow() {
 
 function startAnima() {
   return new Promise((resolve, reject) => {
+    // console.log("startAnima")
     const btn = document.querySelector(`.next-button`) as HTMLElement
     const aim = document.querySelector(`.word-panel .wordMiddle`) as HTMLElement
     const bullet = document.querySelector(`.bullet`) as HTMLElement
@@ -513,15 +516,15 @@ function startAnima() {
 }
 
 
-function showHandsOnKeyboard(){
+function showHandsOnKeyboard() {
   const el = document.getElementById('fingerPic')
   const btns = document.querySelectorAll<HTMLElement>('.hg-button.hg-standardBtn')
   // const btn_F=btns.find(btn=>btn.innerText==='F')
   if (el) {
     for (const btn of btns) {
-      if (btn.dataset.skbtn ==='f'){
+      if (btn.dataset.skbtn === 'f') {
 
-        console.log(btn.offsetTop,el.offsetTop)
+        console.log(btn.offsetTop, el.offsetTop)
         const h = btn.offsetTop - el.offsetTop - 20
         keyboard.addButtonTheme('f j', "position-base-button");
         anime({
@@ -539,6 +542,8 @@ function showHandsOnKeyboard(){
       }
     }
   }
+
+  playListByNames(['s1', 's2'])
 }
 
 //#region 键盘按键和输入事件
@@ -563,7 +568,12 @@ async function onKeyPress(button: string) {
     keepPressing = true
     info.rightCount++
     info.cur_btn = button
+    // playListByNames(['bee','pa'],1,0.3)
+    playSingleByName('bee')
     await startAnima()
+    playSingleByName('pa')
+
+    // playListByNames(['pa'])
     await monsterBeHited()
     keyboard.removeButtonTheme(button, "next-button");
     info.next = getNextWord();
@@ -606,6 +616,7 @@ export default defineComponent({
       changeFinger,
       changeModeToAllFingers,
       showHandsOnKeyboard,
+      muteTheSounds,
     }
   },
 });
@@ -731,19 +742,21 @@ input {
   align-items: center;
   border: 1px solid rgb(104, 255, 197)
 }
-.position-base-button{
+
+.position-base-button {
   position: relative;
 
 }
-.position-base-button ::before{
+
+.position-base-button ::before {
   content: '';
-  position:absolute;
+  position: absolute;
   height: 2px;
   bottom: 2px;
-  left:40%;
+  left: 40%;
   width: 14px;
   border-bottom: 3px solid rgb(14, 106, 126);
   display: inline-block;
   /* margin-right: 24px; */
-  }
+}
 </style>
