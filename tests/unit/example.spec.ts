@@ -1,9 +1,9 @@
 import { mount } from '@vue/test-utils'
-import HomePage from '@/views/HomePage.vue'
+import GamePage from '@/views/GamePage.vue'
 
-describe('HomePage.vue', () => {
-  it('renders home vue', () => {
-    const wrapper = mount(HomePage)
+describe('GamePage.vue', () => {
+  it('renders game vue', () => {
+    const wrapper = mount(GamePage)
     expect(wrapper.text()).toMatch('Ready to create an app?')
   })
 })
