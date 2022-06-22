@@ -2,7 +2,7 @@ import { Howl, Howler } from 'howler';
 
 interface IsoundList {
     name: string,
-    src: string,
+    src: string|string[],
     index: number,
     text: string,
 }
@@ -19,6 +19,12 @@ const soundList: IsoundList[] = [
         src: './sounds/pa.mp3',
         index: 1,
         text: "正确命中音",
+    }, 
+    {
+        name: 'doo',
+        src: './sounds/doo.mp3',
+        index: 1,
+        text: "错误按键音",
     }, {
         name: 's1',
         src: './sounds/s1.mp3',
@@ -29,24 +35,52 @@ const soundList: IsoundList[] = [
         src: './sounds/s2.mp3',
         index: 20,
         text: "手指上划下划，负责本区域的特定按键。让我们先来逐个练习一下。如已熟悉可以跳过。",
+    }, {
+        name: 'left1',
+        src: './sounds/left1.mp3',
+        index: 30,
+        text: "首先是左手小指放在A键上，向上为Q键，向下为Z键。请按下提示区的红色字母对应的按键。来消灭小怪兽吧",
+    }, {
+        name: 'left2',
+        src: ['./sounds/left1.mp3'],
+        index: 30,
+        text: "左手中指放在S键上，向上为W键，向下为X键",
     }]
 
 async function playList(list: IsoundList[], waitTime = 1000, volume = 0.5) {
     Howler.stop()
     for (let i = 0; i < list.length; i++) {
         const sound = list[i];
+
         // eslint-disable-next-line no-await-in-loop
         await playToEnd(sound.src, waitTime, volume)
     }
 }
 
-async function playSingleByName(name: string, waitTime = 1000, volume = 0.5) {
+function playSingleByName(name: string, waitTime = 1000, volume = 0.5) {
     const sound = soundList.find(item => item.name === name)
     if (sound) {
         playToEnd(sound.src, waitTime, volume)
+        return sound.text
     } else {
         console.error(`sound ${name} not found`)
     }
+}
+
+async function playSingleByNameSync(name: string, waitTime = 1000, volume = 0.5) {
+    Howler.stop()
+    const sound = soundList.find(item => item.name === name)
+    if (sound) {
+        await playToEnd(sound.src, waitTime, volume)
+        return sound.text
+    } else {
+        console.error(`sound ${name} not found`)
+    }
+}
+
+function getSoundByName(name: string) {
+    const sound = soundList.find(item => item.name === name)
+    return sound
 }
 
 
@@ -62,10 +96,11 @@ function playListByNames(names: string[], waitTime = 1000, volume = 0.5) {
     playList(list, waitTime, volume)
 }
 
-function playToEnd(url: string, waitTime = 0, volume = 0.5) {
+function playToEnd(url: string|string[], waitTime = 0, volume = 0.5) {
     return new Promise(resolve => {
+        const src= url instanceof Array ? url : [url]
         const sound = new Howl({
-            src: [url],
+            src,
             autoplay: false,
             loop: false,
             volume,
@@ -88,4 +123,4 @@ function muteTheSounds() {
     Howler.mute(muted)
 }
 
-export { playListByNames, muteTheSounds, playSingleByName }
+export { playListByNames, muteTheSounds, playSingleByName, playSingleByNameSync, getSoundByName }

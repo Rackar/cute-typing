@@ -41,6 +41,8 @@
           <span @click="stopGame" class="m10 primary-btn">清零</span>
           <span @click="showHandsOnKeyboard" class="m10 primary-btn">显示双手位置</span>
           <span @click="muteTheSounds" class="m10 primary-btn">静音/解除</span>
+          <span @click="startLastLevel" class="m10 primary-btn">上一关</span>
+          <span @click="startNextLevel" class="m10 primary-btn">下一关</span>
         </div>
         <div class="m10">
           <span @click="changeModeToAllFingers" class="m10 primary-btn">全键盘</span>
@@ -48,6 +50,9 @@
             <span @click="changeFinger(finger)" class="m10 primary-btn">{{ finger.label }}</span>
 
           </span>
+        </div>
+        <div class="subtitle" v-show="info.subtitle">
+          {{ info.subtitle }}
         </div>
         <div>
           <img id="fingerPic" src="../pics/hands.svg" alt="" srcset="" width="500">
@@ -65,7 +70,8 @@ import { defineComponent, reactive, computed, nextTick } from 'vue';
 // var randomWords = require('random-words');
 import anime from 'animejs'
 import { wordList } from '../libs/randomWord';
-import { playListByNames, muteTheSounds, playSingleByName } from './sound'
+import { playListByNames, muteTheSounds, playSingleByName, playSingleByNameSync, getSoundByName } from './sound'
+import { UI, Level, GameManager } from './gameMode'
 
 //#region 定义类型、变量、计算属性、响应式
 interface Iwordlist {
@@ -146,7 +152,20 @@ const info = reactive({
   cacheShadowedList: [''],
   isShowFingerPoint: false,
   monsterPicName: '0',
+  subtitle: '',
 })
+
+// 键盘组件初始化回调
+
+let keyboard: any = null
+let ui: UI
+let gameManager: GameManager
+function keyboardMounted(_keyboard: any) {
+  keyboard = _keyboard
+  ui = new UI(keyboard)
+  gameManager = new GameManager(ui)
+}
+
 const wordStart = computed(() => {
   const el = info.next
   if (el) {
@@ -447,22 +466,10 @@ function getElementPos(element: HTMLElement) {
 
 //#endregion
 
-let keyboard: any = null
-function keyboardMounted(_keyboard: any) {
-  keyboard = _keyboard
-}
+
 
 function addShadow(keys: string[], lastKeys: string[] = []) {
-
-  for (const thekey of lastKeys) {
-    keyboard.removeButtonTheme(thekey, "shadow-button");
-  }
-
-  clearShadow()
-  for (const thekey of keys) {
-    keyboard.addButtonTheme(thekey, "shadow-button");
-    info.cacheShadowedList = [...thekey]
-  }
+  ui.hightLightKeys = keys
 }
 
 function clearShadow() {
@@ -543,7 +550,20 @@ function showHandsOnKeyboard() {
     }
   }
 
-  playListByNames(['s1', 's2'])
+  playAndShowSubSync(['s1','s2'])
+}
+
+async function playAndShowSubSync(names:string[]){
+  for (const name of names) {
+    const sound = getSoundByName(name)
+    if (sound?.text) {
+      info.subtitle = sound.text
+      // eslint-disable-next-line no-await-in-loop
+      await playSingleByNameSync(name)
+      info.subtitle = ''
+    }
+  }
+  
 }
 
 //#region 键盘按键和输入事件
@@ -584,6 +604,7 @@ async function onKeyPress(button: string) {
   } else {
     info.wrongCount++
     console.log('错误')
+    playSingleByName('doo')
     keepPressing = false
   }
 }
@@ -593,6 +614,24 @@ function onInputChange(_input: any) {
   info.input = _input.target.value;
 }
 //#endregion
+
+function startLastLevel() {
+  gameManager.startLastLevel()
+  playIntroAndSubtitle()
+}
+
+function startNextLevel() {
+  gameManager.startNextLevel()
+  playIntroAndSubtitle()
+}
+
+async function playIntroAndSubtitle() {
+  if (gameManager.currentLevel) {
+    info.aimKeys = gameManager.currentLevel.avaliableKeys
+    const name = gameManager.currentLevel.fingerName
+    playAndShowSubSync([name])
+  }
+}
 
 export default defineComponent({
   name: 'HomePage',
@@ -617,6 +656,7 @@ export default defineComponent({
       changeModeToAllFingers,
       showHandsOnKeyboard,
       muteTheSounds,
+      startLastLevel, startNextLevel,
     }
   },
 });
@@ -758,5 +798,16 @@ input {
   border-bottom: 3px solid rgb(14, 106, 126);
   display: inline-block;
   /* margin-right: 24px; */
+}
+
+.subtitle {
+  position: absolute;
+  background-color: gray;
+  width: 60%;
+  font-size: 40px;
+  opacity: 0.7;
+  line-height: 60px;
+  bottom: 0px;
+  word-wrap: normal;
 }
 </style>
