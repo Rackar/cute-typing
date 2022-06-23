@@ -26,4 +26,4 @@ jobs:
           FOLDER: dist # The folder the action should deploy.
         env:
           ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          BASE_BRANCH: demo # The branch the action should deploy from.
+          BASE_BRANCH: dev # The branch the action should deploy from.
