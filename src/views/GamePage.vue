@@ -18,7 +18,8 @@
         <div>
           <span class="bullet" v-show="info.showBuuletAnima">{{ info.cur_btn }}</span>
         </div>
-        <img id="monster" :src="'/pics/monster/' + info.monsterPicName + '.jpg'" alt="" srcset="" width="50" />
+        <img id="monster" :src=" `${basePath}pics/monster/${info.monsterPicName}.jpg`" alt=""
+          srcset="" width="50" />
         <div class="word-panel m10" v-if="wordMiddle">
           <span class="wordStart"> {{ wordStart }}</span>
           <span class="wordMiddle"> {{ wordMiddle }}</span>
@@ -55,7 +56,7 @@
           {{ info.subtitle }}
         </div>
         <div>
-          <img id="fingerPic" src="../pics/hands.svg" alt="" srcset="" width="500">
+          <img id="fingerPic" :src="`${basePath}pics/hands.svg`" alt="" srcset="" width="500">
         </div>
       </div>
 
@@ -64,6 +65,8 @@
 </template>
 
 <script lang="ts">
+const basePath = process.env.NODE_ENV === 'production'
+  ? '/cute-typing/' : "/"
 import SimpleKeyboard from "./KeyBoard.vue";
 import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar } from '@ionic/vue';
 import { defineComponent, reactive, computed, nextTick } from 'vue';
@@ -657,6 +660,8 @@ export default defineComponent({
       showHandsOnKeyboard,
       muteTheSounds,
       startLastLevel, startNextLevel,
+      basePath,
+      handUrl:`${basePath}pics/hands.svg`,
     }
   },
 });
