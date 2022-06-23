@@ -1,25 +1,13 @@
 <template>
   <ion-page>
-    <!-- <ion-header :translucent="true">
-      <ion-toolbar>
-        <ion-title>Typing Soup</ion-title>
-      </ion-toolbar>
-    </ion-header> -->
-
     <ion-content :fullscreen="false">
-      <!-- <ion-header collapse="condense">
-        <ion-toolbar>
-          <ion-title size="large">Blank</ion-title>
-        </ion-toolbar>
-      </ion-header> -->
       <span class="fingerHighlight" v-show="info.isShowFingerPoint"> </span>
 
       <div id="container">
         <div>
           <span class="bullet" v-show="info.showBuuletAnima">{{ info.cur_btn }}</span>
         </div>
-        <img id="monster" :src=" `${basePath}pics/monster/${info.monsterPicName}.jpg`" alt=""
-          srcset="" width="50" />
+        <img id="monster" :src=" `${basePath}pics/monster/${info.monsterPicName}.jpg`" alt="" srcset="" width="50" />
         <div class="word-panel m10" v-if="wordMiddle">
           <span class="wordStart"> {{ wordStart }}</span>
           <span class="wordMiddle"> {{ wordMiddle }}</span>
@@ -37,7 +25,7 @@
           :input="info.input" />
 
         <div class="m10">
-          <span @click="startGetWord" class="m10 primary-btn">开始</span>
+          <span @click="startGetWord" class="m10 primary-btn more-green">开始</span>
           <span @click="pauseGame" class="m10 primary-btn">暂停</span>
           <span @click="stopGame" class="m10 primary-btn">清零</span>
           <span @click="showHandsOnKeyboard" class="m10 primary-btn">显示双手位置</span>
@@ -640,10 +628,7 @@ export default defineComponent({
   name: 'HomePage',
   components: {
     IonContent,
-    IonHeader,
     IonPage,
-    IonTitle,
-    IonToolbar,
     SimpleKeyboard,
 
   }, setup() {
@@ -715,8 +700,12 @@ export default defineComponent({
   color: #fff;
   border-radius: 5px;
   padding: 5px 10px;
-
 }
+
+.more-green{
+  background-color: #0066af;
+}
+
 
 .primary-btn:hover {
   background-color: #008378;
