@@ -67,7 +67,7 @@
 import SimpleKeyboard from "./KeyBoard.vue";
 import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar } from '@ionic/vue';
 import { defineComponent, reactive, computed, nextTick } from 'vue';
-// var randomWords = require('random-words');
+
 import anime from 'animejs'
 import { wordList } from '../libs/randomWord';
 import { playListByNames, muteTheSounds, playSingleByName, playSingleByNameSync, getSoundByName } from './sound'

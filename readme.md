@@ -10,3 +10,11 @@ A web page to learn and practice Keyboard typing.
 npm install
 npm run serve
 ```
+
+# 引用库
+Vue 3   
+ionic   
+TypeScript   
+anime.js   
+howlerjs   
+simple-keyboard   

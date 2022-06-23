@@ -20,7 +20,6 @@
     "animejs": "^3.2.1",
     "core-js": "^3.6.5",
     "howler": "^2.2.3",
-    "random-words": "^1.1.2",
     "simple-keyboard": "^3.4.111",
     "vue": "^3.2.21",
     "vue-router": "^4.0.12"
